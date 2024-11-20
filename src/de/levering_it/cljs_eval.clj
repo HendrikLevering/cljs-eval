@@ -13,14 +13,14 @@
 
 (defonce session (atom nil))
 
-(defn enable-cljs-eval!
-  "starts the cljs repl with a headless browser"
+(defn enable-browser-context!
+  "starts a node repl"
   []
   (when-not @session
    (let [server (server/start-server {:accept 'cljs.core.server/io-prepl
                                       :address "127.0.0.1"
                                       :port 0
-                                      :name "cljs.math-repl"
+                                      :name "cljs.browser-repl"
                                       :args [:repl-env (cljs.repl.browser/repl-env
                                                         :launch-browser false)]})
          port (-> server (.getLocalPort))]
@@ -41,18 +41,41 @@
        (let [page (.newPage context)]
          (println "connecting to " "http://localhost:9000")
          (.navigate page "http://localhost:9000")  ; use playwright to get a browser to connect to it
-         (reset! session [server p browser socket context]))))))
+         (reset! session [server p browser context])
+         (println "repl ready"))))))
+
+(defn enable-node-context!
+  "starts the cljs repl with a headless browser"
+  []
+  (when-not @session
+    (let [server (server/start-server {:accept 'cljs.core.server/io-prepl
+                                       :address "127.0.0.1"
+                                       :port 0
+                                       :name "cljs.node-repl"
+                                       :args [:repl-env (cljs.repl.node/repl-env
+                                                         :launch-browser false)]})
+          port (-> server (.getLocalPort))]
+      (println "Server opened on port" port)
+      (let [socket  (java.net.Socket. "127.0.0.1"  (-> server (.getLocalPort)))
+            rdr (io/reader socket)
+            wrtr (io/writer socket)]
+        (println "establish repl conn")
+        (reset! reader rdr)
+        (reset! writer wrtr)
+        (reset! session [server socket])))))
+
+(defn enable-cljs-eval!
+  "starts the cljs repl with a headless browser"
+  []
+  (enable-browser-context!))
 
 (defn disable-cljs-eval!
   "kill the cljs repl"
   ;this is buggy. If you run (enable-cljs-eval!) in the same jvm process again, then cljs-eval will hang.
   []
-  (when-let [[server p browser socket context] @session]
-    (.close context)
-    (.close socket)
-    (.close browser)
-    (.close p)
-    (.close server)
+  (when-let [s @session]
+    (dorun (map #(.close %) (reverse s)))
+    (server/stop-servers)
     (reset! session nil)))
 
 
@@ -77,7 +100,9 @@
         (if (< counter 10)
           (let [v (-readline)
                 result (conj result v)]
-            (if (= :ret (:tag v))
+            ; todo ready check only for node repl
+            (if (or (= :ret (:tag v)) #_(not (-> @reader
+                                               .ready)))
               result
               (recur result (inc counter))))
           result)))))
@@ -91,7 +116,7 @@
               (case (:tag r)
                 :ret r
                 :out (print val)
-                :err (print val)
+                :err (print val) ; todo restart for node repl
                 :tap (tap> val)))))
     (throw (ex-info "cljs repl not ready. did you forget to run (enable-cljs-eval!)?" {:expr expr}))))
 
@@ -107,6 +132,10 @@
 (comment
 
   (enable-cljs-eval!)
+  (enable-node-context!)
+  (cljs-eval "(.createElement js/window.document \"div\")")
+  {:tag :ret, :val "#object[HTMLDivElement [object HTMLDivElement]]", :ns "cljs.user", :ms 13, :form "(.createElement js/window.document \"div\")"}
+
   (disable-cljs-eval!)
 
   (cljs-eval! (println 2 3))
@@ -125,6 +154,7 @@
   ;true
 
   (cljs-eval "(+ 1 1)")
+  (cljs-eval! (js/alert "div"))
   ;;{:tag :ret, :val "2", :ns "cljs.user", :ms 12, :form "(+ 1 1)"}
 
   (cljs-eval "(println 1 1)")
@@ -140,7 +170,7 @@
 
 
 
-
+  (-println "(foo 1)")
   ; drain helper for unexpecteed cases
   (when (-> @reader
             .ready)
