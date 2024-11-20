@@ -1,0 +1,43 @@
+---
+name: Run tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build-clj:
+    strategy:
+      matrix:
+        # Supported Java versions: LTS releases and latest
+        jdk: [8, 11, 17, 21]
+        clojure: [11 12]
+
+    name: Clojure ${{ matrix.clojure }} (Java ${{ matrix.jdk }})
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java ${{ matrix.jdk }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: ${{ matrix.jdk }}
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+          key: ${{ runner.os }}-test-deps-${{ hashFiles('**/deps.edn') }}-${{ matrix.clojure }}-${{ matrix.jdk }}
+          restore-keys: |
+            ${{ runner.os }}-test-deps-${{ hashFiles('**/deps.edn') }}-${{ matrix.clojure }}-
+            ${{ runner.os }}-test-deps-
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@master
+        with:
+          cli: latest
+      - name: Run tests
+        run: CLOJURE_ALIAS=clojure -T:build test
