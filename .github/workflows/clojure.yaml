@@ -40,4 +40,4 @@ jobs:
         with:
           cli: latest
       - name: Run tests
-        run: CLOJURE_ALIAS=clojure -T:build test
+        run: clojure-${{ matrix.clojure }} -T:build test
