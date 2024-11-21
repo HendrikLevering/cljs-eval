@@ -1,6 +1,6 @@
 # de.levering-it/cljs-eval
 
-Do you want to be able to run cljs directly from your cljs repl?
+Do you want to be able to run cljs directly from your clj repl?
 Cljs-eval gives you a way to create a headless browser repl, which you can use to
 run cljs code directly from clj. It uses playwright to establish the browser repl.
 
