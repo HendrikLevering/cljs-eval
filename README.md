@@ -2,9 +2,13 @@
 
 Do you want to be able to run cljs directly from your cljs repl?
 Cljs-eval gives you a way to create a headless browser repl, which you can use to
-run cljs code directly from clj.
+run cljs code directly from clj. It uses playwright to establish the browser repl.
 
 ## Getting Started
+
+Get dependency:
+
+    {:deps {io.github.HendrikLevering/cljs-eval {:git/sha "f3d32a33af57b5ff3cb7f2a18a653b4d50f7ec63"}}}
 
 All functions are in the `de.levering-it/cljs-eval` namepace
 
@@ -24,39 +28,29 @@ Now you can eval in cljs:
     {:tag :ret, :val "nil", :ns "cljs.user", :ms 10, :form "(println 1 1)"}
 
 cljs-eval takes a string and returns a map with the result. For convenience there is
-a macro, which evaluates forms and parses the return value:
+a macro, which evaluates forms and parses the return value with edn/read-string:
 
     $ (cljs-eval! (+ 1 1))
     2
 
+You are realy evaluating in the context of the browser repl and you can use the result directly in CLJ
+
+    (cljs-eval! (set! (.-title js/document) "Foobar"))
+    (= "Foobar" (cljs-eval! (.-title js/document))) ; => true
+
 Note: That cljs-eval! throws, if it cannot parse the return value (edn/read-string ret-value)
 
-## Usage
-Run the project's tests (they'll fail until you edit them):
+## Limitations
 
-    $ clojure -T:build test
+Teardown of cljs repl from with the jvm process does not work. If you need to a fresh cljs repl, you have to restart your jvm repl. If you try to restart the cljs repl from within
+the JVM process, then the next cljs-eval will freeze. This is due to some strange behaviour in the socket-repl or playwright thread, which I do not fully understand. Hints to fix this are
+welcome :-).
 
-Run the project's CI pipeline and build a JAR (this will fail until you edit the tests to pass):
-
-    $ clojure -T:build ci
-
-This will produce an updated `pom.xml` file with synchronized dependencies inside the `META-INF`
-directory inside `target/classes` and the JAR in `target`. You can update the version (and SCM tag)
-information in generated `pom.xml` by updating `build.clj`.
-
-Install it locally (requires the `ci` task be run first):
-
-    $ clojure -T:build install
-
-Deploy it to Clojars -- needs `CLOJARS_USERNAME` and `CLOJARS_PASSWORD` environment
-variables (requires the `ci` task be run first):
-
-    $ clojure -T:build deploy
-
-Your library will be deployed to de.levering-it/cljs-eval on clojars.org by default.
+If you use cljs-eval! macro, it uses edn/string to parse the result val. Any result which is not a plain datastructure will throw. You can
+receive the origin result with ex-data
 
 ## License
 
-Copyright © 2024 Levering IT GmnG
+Copyright © 2024 Levering IT GmbH
 
 Distributed under MIT License
