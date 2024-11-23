@@ -8,7 +8,7 @@ run cljs code directly from clj. It uses playwright to establish the browser rep
 
 Get dependency:
 
-    {:deps {io.github.HendrikLevering/cljs-eval {:git/sha "f3d32a33af57b5ff3cb7f2a18a653b4d50f7ec63"}}}
+    {:deps {io.github.HendrikLevering/cljs-eval {:git/sha "41f590db2130642c9b9916e05417f4814e2937f1"}}}
 
 All functions are in the `de.levering-it/cljs-eval` namepace
 
