@@ -72,15 +72,12 @@
             (-readline))]
     (case (:tag r)
       :ret [r]
-      (loop [result [r]
-             counter 0]
-        (if (< counter 10)
-          (let [v (-readline)
-                result (conj result v)]
-            (if (= :ret (:tag v))
-              result
-              (recur result (inc counter))))
-          result)))))
+      (loop [result [r]]
+        (let [v (-readline)
+              result (conj result v)]
+          (if (= :ret (:tag v))
+            result
+            (recur result)))))))
 
 (defn cljs-eval
   "eval a string in the cljs repl. You can start the repl with enable-cljs-eval!"
@@ -104,12 +101,24 @@
        (catch Exception e#
          (throw (ex-info "eval returned non-plain data" r#))))))
 
+
+(defn drain
+  "consumes all output"
+  []
+  (loop []
+    (when (-> @reader
+              .ready)
+      (do
+        (println (-readline))
+        (recur)))))
 (comment
 
   (enable-cljs-eval!)
   (disable-cljs-eval!)
+  (drain)
 
-  (cljs-eval! (println 2 3))
+  (cljs-eval! (dotimes [n 20]
+                (println  2 n)))
   ;; 2 3
   ;nil
 
