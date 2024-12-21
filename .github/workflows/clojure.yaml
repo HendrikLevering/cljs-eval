@@ -42,6 +42,30 @@ jobs:
       - name: Run tests
         run: clojure -T:build ci
 
+  deploy:
+    needs: build-clj
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 8
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+          key: ${{ runner.os }}-test-deps-${{ hashFiles('**/deps.edn') }}-${{ matrix.clojure }}-8
+          restore-keys: |
+            ${{ runner.os }}-test-deps-${{ hashFiles('**/deps.edn') }}-${{ matrix.clojure }}-
+            ${{ runner.os }}-test-deps-
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@master
+        with:
+          cli: latest
+      - name: Run tests
+        run: clojure -T:build ci
       - name: Publish to Clojars
         env:
           CLOJARS_USERNAME: ${{ secrets.CLOJARS_USERNAME }}
