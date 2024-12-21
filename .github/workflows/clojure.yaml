@@ -40,4 +40,10 @@ jobs:
         with:
           cli: latest
       - name: Run tests
-        run: clojure -T:build test
+        run: clojure -T:build ci
+
+      - name: Publish to Clojars
+        env:
+          CLOJARS_USERNAME: ${{ secrets.CLOJARS_USERNAME }}
+          CLOJARS_PASSWORD: ${{ secrets.CLOJARS_PASSWORD }}
+        run: clojure -T:build deploy

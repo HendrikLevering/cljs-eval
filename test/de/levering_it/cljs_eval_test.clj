@@ -1,6 +1,6 @@
 (ns de.levering-it.cljs-eval-test
   (:require [clojure.test :refer :all]
-            [de.levering-it.cljs-eval :refer [enable-cljs-eval! cljs-eval cljs-eval! disable-cljs-eval!]]))
+            [de.levering-it.cljs-eval :refer [enable-cljs-eval! cljs-eval cljs-eval! disable-cljs-eval! with-cljs read-fn]]))
 
 
 (defn cljs-repl [f]
@@ -40,4 +40,21 @@
            nil))
     (is (= (cljs-eval! (tap> 2 3))
            true))
-    (is (thrown? Exception (cljs-eval! (foo 2 3))))))
+    (is (thrown? Exception (cljs-eval! (foo 2 3)))))
+  (testing "with-cljs"
+    (is (= (with-cljs [y 5
+                       x 6]
+             (+ y x)) 11))
+    (is (= (with-cljs []
+             (+)) 0))
+    (is (with-cljs [x 5
+                    x (* x 2)
+                    y x]
+          (+ x y)) 20))
+  (testing "read-fn binding"
+    (is (= (binding [read-fn identity]
+             (with-cljs [x 1]
+               (+ x 1))) "2"))
+    (is (= (binding [read-fn identity]
+             (cljs-eval!
+              (+ 1 1))) "2"))))

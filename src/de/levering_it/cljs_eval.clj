@@ -13,6 +13,15 @@
 
 (defonce session (atom nil))
 
+(defn get-page
+  "Returns the playwright page object, that is connected to the context in
+   which the JS code is evaluated"
+  []
+  (when-let [[_ _ _ _ _ page] @session]
+    page))
+
+(def ^:dynamic read-fn edn/read-string)
+
 (defn enable-cljs-eval!
   "starts the cljs repl with a headless browser"
   []
@@ -41,7 +50,7 @@
        (let [page (.newPage context)]
          (println "connecting to " "http://localhost:9000")
          (.navigate page "http://localhost:9000")  ; use playwright to get a browser to connect to it
-         (reset! session [server p browser socket context]))))))
+         (reset! session [server p browser socket context page]))))))
 
 (defn disable-cljs-eval!
   "kill the cljs repl"
@@ -97,7 +106,7 @@
   [form]
   `(let [r# (cljs-eval (with-out-str (pprint (quote ~form))))]
      (try
-       (edn/read-string (:val r#))
+       (read-fn (:val r#))
        (catch Exception e#
          (throw (ex-info "eval returned non-plain data" r#))))))
 
@@ -111,6 +120,43 @@
       (do
         (println (-readline))
         (recur)))))
+
+
+(defn replace-symbols [form sym-map]
+  (cond
+    (symbol? form) (get sym-map form form)
+    (seq? form) (map #(replace-symbols % sym-map) form)
+    (vector? form) (mapv #(replace-symbols % sym-map) form)
+    (map? form) (reduce-kv (fn [m k v]
+                             (assoc m
+                                    (replace-symbols k sym-map)
+                                    (replace-symbols v sym-map)))
+                           {}
+                           form)
+    (set? form) (set (map #(replace-symbols % sym-map) form))
+    :else form))
+
+
+(defmacro with-cljs
+  "eval form in cljs repl. bindings bind symbols to vals from clj.
+   Destructuring works.
+   Limitations: symbols must be bound to plain data, that can be read by a cljs repl
+"
+  [bindings & forms]
+
+  (let [bindings (clojure.core/destructure bindings)
+        opts (into {} (for [[k v] (partition 2 2 bindings)]
+                        [(list 'quote k) k]))
+        form `(do ~@forms)]
+    `(let ~(vec bindings)
+       (let [r# (cljs-eval (with-out-str (clojure.pprint/pprint  (replace-symbols (quote ~form) ~opts))))]
+         (-> r#
+             (try
+               (read-fn (:val r#))
+               (catch Exception e#
+                 (throw (ex-info "eval returned non-plain data" r#)))))))))
+
+
 (comment
 
   (enable-cljs-eval!)
