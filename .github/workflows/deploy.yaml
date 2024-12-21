@@ -35,6 +35,5 @@ jobs:
           CLOJARS_USERNAME: ${{ secrets.CLOJARS_USERNAME }}
           CLOJARS_PASSWORD: ${{ secrets.CLOJARS_PASSWORD }}
         run: |
-          echo $CLOJARS_USERNAME $CLOJARS_PASSWORD
           clojure -T:build ci
-          clojure -T:build deploy
+          CLOJARS_USERNAME=${{ env.CLOJARS_USERNAME }} CLOJARS_PASSWORD=${{ env.CLOJARS_PASSWORD }}  clojure -T:build deploy
