@@ -104,11 +104,13 @@
 (defmacro cljs-eval!
   "evals form in cljs repl (cljs-eval! (+ 1 1))"
   [form]
-  `(let [r# (cljs-eval (with-out-str (pprint (quote ~form))))]
-     (try
-       (read-fn (:val r#))
-       (catch Exception e#
-         (throw (ex-info "eval returned non-plain data" r#))))))
+  `(do
+     (enable-cljs-eval!)
+     (let [r# (cljs-eval (with-out-str (pprint (quote ~form))))]
+       (try
+         (read-fn (:val r#))
+         (catch Exception e#
+           (throw (ex-info "eval returned non-plain data" r#)))))))
 
 
 (defn drain
@@ -148,13 +150,15 @@
         opts (into {} (for [[k v] (partition 2 2 bindings)]
                         [(list 'quote k) k]))
         form `(do ~@forms)]
-    `(let ~(vec bindings)
-       (let [r# (cljs-eval (with-out-str (clojure.pprint/pprint  (replace-symbols (quote ~form) ~opts))))]
-         (-> r#
-             (try
-               (read-fn (:val r#))
-               (catch Exception e#
-                 (throw (ex-info "eval returned non-plain data" r#)))))))))
+    `(do
+       (enable-cljs-eval!)
+       (let ~(vec bindings)
+         (let [r# (cljs-eval (with-out-str (clojure.pprint/pprint  (replace-symbols (quote ~form) ~opts))))]
+           (-> r#
+               (try
+                 (read-fn (:val r#))
+                 (catch Exception e#
+                   (throw (ex-info "eval returned non-plain data" r#))))))))))
 
 
 (comment

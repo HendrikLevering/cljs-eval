@@ -47,10 +47,14 @@
              (+ y x)) 11))
     (is (= (with-cljs []
              (+)) 0))
-    (is (with-cljs [x 5
-                    x (* x 2)
-                    y x]
-          (+ x y)) 20))
+    (is (= (with-cljs [x 5
+                       x (* x 2)
+                       y x]
+             (+ x y)) 20))
+    (is (= (with-cljs [[{:keys [x]} b] [{:x 5} 2]
+                       x (* x 2)
+                       y x]
+             (+ x y b)) 22)))
   (testing "read-fn binding"
     (is (= (binding [read-fn identity]
              (with-cljs [x 1]
