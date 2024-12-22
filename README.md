@@ -24,9 +24,9 @@ And you are ready to go:
     $ (cljs-eval! (+ 1 1))
     2
 
-cljs-eval! takes a form evals it in the browser repl and returns the result.
+cljs-eval! takes a form, evals it in the browser repl and returns the result.
 It will also print stdout and stderr and forward tap.
-The return value is parsedd with edn/read-string. Therefore it will throw an exception, if the return value is not a valid edn. You can rebind read-fn to a function, which parses the return value in a different way.
+The return value is parsed with edn/read-string. Therefore it will throw an exception, if the return value is not a valid edn. You can rebind read-fn to a function, which parses the return value in a different way.
 
     $ (binding [read-fn identity]
             (cljs-eval! (+ 1 1)))

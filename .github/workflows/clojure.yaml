@@ -4,9 +4,20 @@ name: Run tests
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'resources/**'
+      - '.github/workflows/clojure.yaml'
+      - 'build.clj'
+      - 'deps.edn'
   pull_request:
     branches: [main]
-
+    paths:
+      - 'src/**'
+      - 'resources/**'
+      - '.github/workflows/clojure.yaml'
+      - 'build.clj'
+      - 'deps.edn'
 jobs:
   build-clj:
     strategy:
