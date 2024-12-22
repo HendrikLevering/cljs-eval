@@ -1,6 +1,7 @@
 # de.levering-it/cljs-eval
 
 [![Clojars Project](https://img.shields.io/clojars/v/de.levering-it/cljs-eval.svg)](https://clojars.org/de.levering-it/cljs-eval)
+![example branch parameter](https://github.com/HendrikLevering/cljs-eval/actions/workflows/clojure.yaml/badge.svg?branch=main)
 
 Do you want to be able to run cljs directly from your clj repl?
 
