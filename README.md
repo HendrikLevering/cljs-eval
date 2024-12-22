@@ -12,7 +12,7 @@ run cljs code directly from clj.
 Include the dependency:
 
 ```clojure
-de.levering-it/cljs-eval {:mvn/version "0.1.1"}
+de.levering-it/cljs-eval {:mvn/version "0.1.2"}
 ```
 
 
@@ -35,7 +35,7 @@ It will also print stdout and stderr and forward tap.
 The return value is parsed with edn/read-string. Therefore it will throw an exception, if the return value is not a valid edn. You can rebind read-fn to a function, which parses the return value in a different way.
 
 ```clojure
-(binding [read-fn identity]
+(binding [read-fn #(-> % :val identity)]
   (cljs-eval! (+ 1 1)))
 ; => "2"
 ```

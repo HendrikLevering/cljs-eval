@@ -60,10 +60,10 @@
                        y x]
              (+ x y b)) 22)))
   (testing "read-fn binding"
-    (is (= (binding [read-fn identity]
+    (is (= (binding [read-fn :val]
              (with-cljs [x 1]
                (+ x 1))) "2"))
-    (is (= (binding [read-fn identity]
+    (is (= (binding [read-fn #(-> % :val identity)]
              (cljs-eval!
               (+ 1 1))) "2")))
   (testing "get-page"

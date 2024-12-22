@@ -20,7 +20,13 @@
   (when-let [[_ _ _ _ _ page] @session]
     page))
 
-(def ^:dynamic read-fn edn/read-string)
+
+(defn default-parse [x]
+  (-> x
+      :val
+      (edn/read-string)))
+
+(def ^:dynamic read-fn default-parse)
 
 (defn enable-cljs-eval!
   "starts the cljs repl with a headless browser"
@@ -108,7 +114,7 @@
      (enable-cljs-eval!)
      (let [r# (cljs-eval (with-out-str (pprint (quote ~form))))]
        (try
-         (read-fn (:val r#))
+         (read-fn r#)
          (catch Exception e#
            (throw (ex-info "eval returned non-plain data" r#)))))))
 
@@ -156,7 +162,7 @@
          (let [r# (cljs-eval (with-out-str (clojure.pprint/pprint  (replace-symbols (quote ~form) ~opts))))]
            (-> r#
                (try
-                 (read-fn (:val r#))
+                 (read-fn r#)
                  (catch Exception e#
                    (throw (ex-info "eval returned non-plain data" r#))))))))))
 
