@@ -1,14 +1,18 @@
 (ns de.levering-it.cljs-eval-test
   (:require [clojure.test :refer :all]
-            [de.levering-it.cljs-eval :refer [enable-cljs-eval! cljs-eval cljs-eval! disable-cljs-eval! with-cljs read-fn]]))
-
+            [de.levering-it.cljs-eval :refer [enable-cljs-eval!
+                                              cljs-eval
+                                              cljs-eval!
+                                              with-cljs
+                                              read-fn
+                                              get-page]])
+  (:import [com.microsoft.playwright.impl PageImpl]))
 
 (defn cljs-repl [f]
   (enable-cljs-eval!)
   (f)
   ; this does not work, yet
-  #_(disable-cljs-eval!)
-)
+  #_(disable-cljs-eval!))
 
 ; Here we register my-test-fixture to be called once, wrapping ALL tests
 ; in the namespace
@@ -61,4 +65,6 @@
                (+ x 1))) "2"))
     (is (= (binding [read-fn identity]
              (cljs-eval!
-              (+ 1 1))) "2"))))
+              (+ 1 1))) "2")))
+  (testing "get-page"
+    (is (= (instance? PageImpl (get-page)) true))))
