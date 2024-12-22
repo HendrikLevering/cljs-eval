@@ -1,6 +1,6 @@
 # de.levering-it/cljs-eval
 
-
+[![Clojars Project](https://img.shields.io/clojars/v/de.levering-it/cljs-eval.svg)](https://clojars.org/de.levering-it/cljs-eval)
 
 Do you want to be able to run cljs directly from your clj repl?
 
@@ -12,7 +12,7 @@ run cljs code directly from clj.
 Include the dependency:
 
 ```clojure
-de.levering-it/cljs-eval {:mvn/version "0.1.1-SNAPSHOT"}
+de.levering-it/cljs-eval {:mvn/version "0.1.1"}
 ```
 
 
